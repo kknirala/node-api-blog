@@ -1,5 +1,7 @@
+const {permissionCheck} =require("../middlewares/permissionCheck.js");
+
 module.exports = app => {
-  const guestuser = require("../controllers/guest.user.controller.js");
+  const guestuser = require("../controllers/guestuser.controller.js");
 
   var router = require("express").Router();
 
@@ -7,19 +9,19 @@ module.exports = app => {
   router.post("/", guestuser.create);
 
   // Retrieve all Guest user
-  router.get("/", guestuser.findAll);
+  router.get("/", permissionCheck, guestuser.findAll);
 
   // Retrieve a single Guest User with id
-  router.get("/:id", guestuser.findOne);
+  router.get("/:id",permissionCheck, guestuser.findOne);
 
   // Update a Guest User with id 
-  router.put("/:id", guestuser.update);
+  router.put("/:id", permissionCheck, guestuser.update);
 
   // Delete a Guest User with id
-  router.delete("/:id", guestuser.delete);
+  router.delete("/:id", permissionCheck, guestuser.delete);
 
   // Delete all Guest users
-  router.delete("/", guestuser.deleteAll);
+  router.delete("/", permissionCheck, guestuser.deleteAll);
 
   app.use("/api/guestuser", router);
 };

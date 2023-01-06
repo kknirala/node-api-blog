@@ -1,7 +1,51 @@
-module.exports = {
-  url: "mongodb://localhost:27017/db_blog"
-};
+const config={
+  dbBlog:{
+      production :{
+          SECRET: process.env.SECRET,
+          DATABASE: process.env.MONGODB_URI
+      },
+      default : {
+          SECRET: 'hkdshkjfkey',
+          DATABASE: 'mongodb://localhost:27017/db_blog'
+      }
+  },
+  // dbTech:{
+  //     production :{
+  //         SECRET: process.env.SECRET,
+  //         DATABASE: process.env.MONGODB_URI
+  //     },
+  //     default : {
+  //         SECRET: 'hkdshkjfkey',
+  //         DATABASE: 'mongodb://localhost:27017/db_tech'
+  //     }
+  // },
+  // dbSharem:{
+  //     production :{
+  //         SECRET: process.env.SECRET,
+  //         DATABASE: process.env.MONGODB_URI
+  //     },
+  //     default : {
+  //         SECRET: 'hkdshkjfkey',
+  //         DATABASE: 'mongodb://localhost:27017/db_sharem'
+  //     }
+  // },
+  // dbKahani:{
+  //     production :{
+  //         SECRET: process.env.SECRET,
+  //         DATABASE: process.env.MONGODB_URI
+  //     },
+  //     default : {
+  //         SECRET: 'hkdshkjfkey',
+  //         DATABASE: 'mongodb://localhost:27017/db_kahani'
+  //     }
+  // }
+}
 
+exports.get = function get(env, db){
+  console.log('env, db',env, db);
+  // console.log(config['dbBlog'])
+  return config[db][env] || config[db].default
+}
 
 
 // const config={

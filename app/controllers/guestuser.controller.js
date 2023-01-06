@@ -1,23 +1,18 @@
-const db = require("../models");
+const db = require("../models").get(process.env.NODE_ENV, 'dbBlog');
 const User = db.guestuser;
+const utility = require('../utility/utility.js');
+const constant = require('../constant/constant.js');
 
 // Create and Save a new User
 exports.create = (req, res) => {
   // Validate request
-  if (!req.body.name || !req.body.email) {
-    res.status(400).send({ message: "name & email can not be empty!" });
+  if (!req.body.email) {
+    res.status(400).send({ message: "email can not be empty!" });
     return;
   }
 
   // Create a user
-  const user = new User({
-    type: req.body.type,
-    name: req.body.name,
-    email: req.body.email,
-    phone: req.body.phone,
-    qualification: req.body.qualification,
-    areaofInteres: req.body.areaofInteres
-  });
+    const user = User.create(utility.guserAPiRequest(req.body));
 
   // Save User in the database
   User

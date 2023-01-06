@@ -1,52 +1,29 @@
-const db = require("../models");
+const db = require("../models").get(process.env.NODE_ENV, 'dbBlog');
 const bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
-const User = db.User;
-const salt = 10;
+const User = db.user;
+const utility = require('../utility/utility.js');
+const constant = require('../constant/constant.js');
+
+// const salt = 10;
 // Register new user
 exports.create = async(req, res) => {
   try {
-    // Get user input
-    const {utype, name, email, password , phone, qualification, areaofInteres, picUrl, userName} = req.body;
-
-    // Validate user input
-    if (!(email && password && name)) {
-      res.status(400).send("email, password & name are required");
-    }
-
-    // check if user already exist
-    // Validate if user exist in our database
+    const { email } = req.body;
     const oldUser = await User.findOne({ email });
 
     if (oldUser) {
       return res.status(409).send("User Already Exist. Please Login");
     }
 
-    //Encrypt user password
-    // encryptedPassword = await bcrypt.hash(password, salt);
-
-    // Create user in our database
-    const user = await User.create({
-      utype,
-      name,
-      email: email.toLowerCase(),
-      phone,
-      qualification,
-      areaofInteres,
-      picUrl,
-      userName,
-      password
-      // password2: encryptedPassword,
-    });
-
+    const user = await User.create(utility.userAPiRequest(req.body));
     user.save((err,user)=>{
       if(err) {console.log(err);
           return res.status(400).json({ success : false});}
-      res.status(200).json({
-          succes:true,
-          user : user
-      });
-  });
+      else{   
+         res.status(200).json(utility.userAPiResponse(200,'success',user));
+      }
+   });
   } catch (err) {
     console.log(err);
   }
@@ -56,7 +33,7 @@ exports.create = async(req, res) => {
 // Retrieve all user from the database.
 exports.findAll = (req, res) => {
 
-  User.find()
+  User.find({token:0})
     .then(data => {
       res.send(data);
     })
@@ -73,7 +50,7 @@ exports.findAll = (req, res) => {
   const title = req.query.title;
   var condition = title ? { title: { $regex: new RegExp(title), $options: "i" } } : {};
 
-  User.find(condition)
+  User.find(condition, {token:0})
     .then(data => {
       res.send(data);
     })
@@ -89,7 +66,7 @@ exports.findAll = (req, res) => {
 exports.findOne = (req, res) => {
   const id = req.params.id;
 
-  User.findById(id)
+  User.findById(id, {token:0})
     .then(data => {
       if (!data)
         res.status(404).send({ message: "Not found User with id " + id });
@@ -168,10 +145,9 @@ exports.deleteAll = (req, res) => {
 
 // login
 exports.login = (req, res) => {
-  console.log(req.body)
   let token=req.cookies.auth;
     User.findByToken(token,(err,user)=>{
-      // console.log(user.email);
+      console.log(err);
         if(err) return  res(err);
         if(user && user.email == req.body.email){
           if(user) return res.status(400).json({
@@ -187,12 +163,15 @@ exports.login = (req, res) => {
                     if(!isMatch) return res.json({ isAuth : false,message : "password doesn't match"});
         
                 user.generateToken((err,user)=>{
+                  console.log('generateToken',err);
                     if(err) return res.status(400).send(err);
+                  
                     res.cookie('auth',user.token).json({
-                        isAuth : true,
+                        userid : user.token,
                         id : user._id,
                         email : user.email,
-                        utype: user.utype
+                        userName: user.userName,
+                        role: constant.roles[user.role]
                     });
                 });    
             });
@@ -204,18 +183,19 @@ exports.login = (req, res) => {
 // logout 
 exports.logout = (req, res) => {
   console.log('calling logout');
-  req.user.deleteToken(req.token,(err,user)=>{
+  req.user.deleteToken(req.headers.token,(err,user)=>{
     if(err) return res.status(400).send(err);
     res.sendStatus(200);
   });
 };
 
 // Get logged in profile
-exports.profile = (req, res) =>{
-  res.json({
-    isAuth: true,
-    id: req.user._id,
-    email: req.user.email,
-    name: req.user.name
-  })
-};
+// exports.profile = (req, res) =>{
+//   return findOne(req, res);
+//   // res.json({
+//   //   role: req.,
+//   //   id: req.user._id,
+//   //   email: req.user.email,
+//   //   name: req.user.name
+//   // })
+// };

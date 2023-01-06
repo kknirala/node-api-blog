@@ -1,13 +1,18 @@
 const jwt = require("jsonwebtoken");
-const confiq=require('../config/config').get(process.env.NODE_ENV);
+const config=require('../config/db.config').get(process.env.NODE_ENV, 'dbBlog');
 const bcrypt = require('bcryptjs');
 const salt = 10;
+const dbName = 'dbBlog';
+
+// A - admin, SA - Super admin, B - Back end team(direct DB access), SU - support user, EU - End user
 module.exports = mongoose => {
   var schema = mongoose.Schema(
     {
-      utype: {
+      role: {
         type: String,
         required: true,
+        enum: ["A", "SA", "B", "SU", "EU"],
+        immutable: true,
         maxlength: 2
       },
       name: {
@@ -19,29 +24,33 @@ module.exports = mongoose => {
         type: String,
         required: true,
         trim: true,
-        unique: 1
+        lowercase: true,
+        unique: 1 
       },
       phoneCode: {
         type: String,
         required: false,
         maxlength: 3
       },
-      phone: { type: Number,
-        required: true,
+      phone: { 
+        type: Number,
+        required: false,
         maxlength: 10
       },
       qualification: String,
-      areaofInteres: Array,
+      areaOfInteres: Array,
       picUrl: String,
       userName: String,
       password:{
         type:String,
         required: true,
+        // select: false,
         minlength:3
     },
       password2:{
           type:String,
           required: false,
+          // select: false,
           minlength:3
 
       },
@@ -49,16 +58,22 @@ module.exports = mongoose => {
           type: String
       },
       following : {
+        type: Array,
         count: Number,
         ids: []
       },
       followers : {
+        type: Array,
         count: Number,
         ids: []
       },
       stories : {
+        type: Array,
         count: Number,
         ids: []
+      },
+      userOf: {
+        type: Array
       }
     },
     { timestamps: true }
@@ -101,7 +116,7 @@ schema.method("comparepassword",function(password,cb){
 
 schema.method("generateToken",function(cb){
   var user =this;
-  var token=jwt.sign(user._id.toHexString(),confiq.SECRET);
+  var token=jwt.sign(user._id.toHexString(),config.SECRET);
 
   user.token=token;
   user.save(function(err,user){
@@ -112,11 +127,13 @@ schema.method("generateToken",function(cb){
 
 // find by token
 schema.statics.findByToken=function(token,cb){
-  console.log(token, "calling user for token", confiq);
+  // console.log(token, "calling user for token", config);
   var user=this;
+  // console.log('user-->', user.token);
 
-  jwt.verify(token,confiq.SECRET,function(err,decode){
+  jwt.verify(token,config.SECRET,function(err,decode){
       user.findOne({"_id": decode, "token":token},function(err,user){
+        // console.log('find by toke',user)
           if(err) return cb(err);
           cb(null,user);
       })
@@ -128,7 +145,7 @@ schema.statics.findByToken=function(token,cb){
 schema.method("deleteToken", function(token,cb){
   var user=this;
 
-  user.update({$unset : {token :1}},function(err,user){
+  user.updateOne({$unset : {token :1}},function(err,user){
       if(err) return cb(err);
       cb(null,user);
   });
@@ -138,6 +155,8 @@ schema.method("deleteToken", function(token,cb){
   schema.method("toJSON", function() {
     const { __v, _id, ...object } = this.toObject();
     object.id = _id;
+    delete object.password;
+    delete object.password2;
     return object;
   });
 
