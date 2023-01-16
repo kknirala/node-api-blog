@@ -9,10 +9,11 @@ const constants = require("./app/constant/constant.js");
 const app = express();
 
 var corsOptions = {
-  origin: constants.origin
+  origin: '*',//constants.origin
 };
 
 app.use(cors(corsOptions));
+app.options('*', cors());
 app.use(cookieParser());
 
 
@@ -21,7 +22,7 @@ app.use(express.json());
 
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
-app.set('trust proxy', true);
+// app.set('trust proxy', true);
 // req.ip  --> to get IP address of the requester.
 // const db = require("./app/models");
 

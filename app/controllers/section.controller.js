@@ -50,7 +50,7 @@ exports.findAll = (req, res) => {
   let Sections = loadModel(req.headers.weburls+defmodel);
   Sections.find({"feedId": req.params.feedId})
     .then(data => {
-      if(!data[0].isDeleted){
+      if(data[0] && !data[0].isDeleted){
         data[0].sections = data[0].sections.filter(dt=> dt.isDeleted === false);
         res.send(data[0]);
       }
@@ -100,7 +100,7 @@ exports.update = async(req, res) => {
   }
 
   const id = req.params.id;
-  delete req.body.published;
+  // delete req.body.published;
   console.log("update me",req.body);
   try{
    
@@ -290,9 +290,26 @@ exports.deleteAll = (req, res) => {
 
 
 // Delete or restore all sections from the database.
-exports.deleteAllPr = (req, res) => {
+exports.deleteOnePr = (req, res) => {
   let Sections = loadModel(req.headers.weburls+defmodel);
   Sections.deleteOne({"feedId" : req.query.feedId})
+  .then(data => {
+    res.send({
+      message: `All sections were deleted Permanently!`
+    });
+  })
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while removing all sections."
+      });
+    });
+};
+
+// Delete or restore all sections from the database.
+exports.deleteAllPr = (req, res) => {
+  let Sections = loadModel(req.headers.weburls+defmodel);
+  Sections.deleteMany({})
   .then(data => {
     res.send({
       message: `All sections were deleted Permanently!`

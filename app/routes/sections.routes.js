@@ -37,7 +37,10 @@ module.exports = app => {
   // delete all sections
   router.delete("/deleteAll", auth, sections.deleteAll);
 
-  // delete all sections permanent
+   // delete all sections of feed permanent
+   router.delete("/deleteonepr", auth, sections.deleteOnePr);
+
+  // delete all sections of all feeds permanent
   router.delete("/deleteallpr", auth, sections.deleteAllPr);
 
   app.use("/api/sections", router);

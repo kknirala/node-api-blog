@@ -21,6 +21,9 @@ module.exports = app => {
   // Retrieve all unpublished Feeds
   router.get("/unpublished", permissionCheck, feeds.findAllUnPublished);
 
+   // Retrieve all deleted Feeds
+   router.get("/deleted", permissionCheck, feeds.findAllDeleted);
+ 
   // Retrieve a single Feed with id
   router.get("/:id", feeds.findOne);
 
@@ -33,7 +36,7 @@ module.exports = app => {
   // Delete a Feed with id
   router.delete("/:id", auth, feeds.delete);
 
-  // Create a new Feed
+  // Delete all feeds
   router.delete("/", auth, feeds.deleteAll);
 
   app.use("/api/feeds", router);

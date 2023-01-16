@@ -171,7 +171,7 @@ exports.login = (req, res) => {
                         id : user._id,
                         email : user.email,
                         userName: user.userName,
-                        role: constant.roles[user.role]
+                        role: user.role
                     });
                 });    
             });

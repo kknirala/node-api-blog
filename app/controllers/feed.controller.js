@@ -2,6 +2,7 @@ const utility = require('../utility/utility.js');
 const db = require("../models");
 // const User = db.User;
 // const Feeds = '';
+const secmodel = 'sections';
 const defmodel = 'feeds';
 const usrmodel = 'user';
 const gsusrmodel = 'guestuser';
@@ -24,7 +25,7 @@ exports.create = async(req, res) => {
   }
 
   // Create a Feed
-  const feed = new Feeds(utility.gcFeedAPI(req.body));
+  const feed = new Feeds(req.body);
 
   // Save Feed in the database
   await feed
@@ -60,9 +61,12 @@ exports.myFeed = async(req, res) => {
   const createdBy = req.query.email;
   // let createdBy = await findUserById(req.query.id, 'email');
   console.log(createdBy)
-  Feeds.find({createdBy: createdBy})
+  Feeds.find({createdBy: createdBy, isDeleted: false})
     .then(data => {
-      res.send(data);
+      // if(data){
+        // data = data.filter(dt=> dt.isDeleted === false);
+        res.send(data);
+      // }
     })
     .catch(err => {
       res.status(500).send({
@@ -76,10 +80,12 @@ exports.myFeed = async(req, res) => {
 exports.findAll = async(req, res) => {
   console.log(req.headers.weburls+defmodel);
   let Feeds = loadModel(req.headers.weburls+defmodel);
-  Feeds.find()
+  Feeds.find({isDeleted: false})
     .then(async(data) => {
-      await sleep(5000);
-      res.send(data);
+      // if(data){
+        // data = data.filter(dt=> dt.isDeleted === false);
+        res.send(data);
+      // }
     })
     .catch(err => {
       res.status(500).send({
@@ -98,7 +104,11 @@ exports.findOne = (req, res) => {
     .then(data => {
       if (!data)
         res.status(404).send({ message: "Not found Feed with id " + id });
-      else res.send(data);
+      else if(!data.isDeleted){
+          // data = data.filter(dt=> dt.isDeleted === false);
+          res.send(data);
+        }
+      else res.send([]);
     })
     .catch(err => {
       res
@@ -117,7 +127,8 @@ exports.update = (req, res) => {
   }
 
   const id = req.params.id;
-  delete req.body.published;
+
+  // delete req.body.published;
   console.log("update me",req.body);
   Feeds.findByIdAndUpdate(id, req.body, { useFindAndModify: false})
     .then(data => {
@@ -162,6 +173,8 @@ exports.deleteAll = (req, res) => {
   let Feeds = loadModel(req.headers.weburls+defmodel);
   Feeds.deleteMany({})
     .then(data => {
+      let Section = loadModel(req.headers.weburls+secmodel);
+      Section.deleteMany({})
       res.send({
         message: `${data.deletedCount} Feeds were deleted successfully!`
       });
@@ -181,11 +194,12 @@ exports.findAllPublished = async(req, res) => {
   // await sleep(5000);
   console.log(req.headers.weburls);
   let Feeds = loadModel(req.headers.weburls+defmodel);
-  Feeds.find({"published": true})
+  Feeds.find({"published": true, isDeleted: false})
     .then(data => {
-      
-      // console.log('published', data);
-      res.send(data);
+      // if(data){
+        // data = data.filter(dt=> dt.isDeleted === false);
+        res.send(data);
+      // }
     })
     .catch(err => {
       res.status(500).send({
@@ -195,10 +209,27 @@ exports.findAllPublished = async(req, res) => {
     });
 };
 
+
 // Find all unpublished Feeds
 exports.findAllUnPublished = (req, res) => {
   let Feeds = loadModel(req.headers.weburls+defmodel);
-  Feeds.find({ published: false })
+  Feeds.find({ published: false , isDeleted: false })
+    .then(data => {
+      // if(data){
+      //   data = data.filter(dt=> dt.isDeleted === false);
+        res.send(data);
+      // }
+    })
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving feeeds."
+      });
+    });
+};
+exports.findAllDeleted = (req, res) => {
+  let Feeds = loadModel(req.headers.weburls+defmodel);
+  Feeds.find({ isDeleted: true })
     .then(data => {
       res.send(data);
     })
@@ -229,21 +260,6 @@ exports.publish  = (req, res) => {
     .catch(err => {
       res.status(500).send({
         message: "Error publishing Feed with id=" + id
-      });
-    });
-};
-
-// Find all unpublished Feeds
-exports.findAllUnPublished = (req, res) => {
-  let Feeds = loadModel(req.headers.weburls+defmodel);
-  Feeds.find({ published: false })
-    .then(data => {
-      res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving feeeds."
       });
     });
 };

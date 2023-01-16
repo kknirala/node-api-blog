@@ -56,7 +56,7 @@ let gcFeedAPI = (data) =>{
         title,
         desc,
         html,
-        published: false,
+        published,
         titlPic,
         isDeleted: false,
         createdBy: createdBy || 'guest',

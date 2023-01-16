@@ -3,6 +3,7 @@ const config=require('../config/db.config').get(process.env.NODE_ENV, 'dbBlog');
 const bcrypt = require('bcryptjs');
 const salt = 10;
 const dbName = 'dbBlog';
+const constant = require('../constant/constant.js');
 
 // A - admin, SA - Super admin, B - Back end team(direct DB access), SU - support user, EU - End user
 module.exports = mongoose => {
@@ -38,6 +39,10 @@ module.exports = mongoose => {
         maxlength: 10
       },
       qualification: String,
+      occupation: {
+        type: String,
+        default: 'Student'
+      },
       areaOfInteres: Array,
       picUrl: String,
       userName: String,
@@ -157,6 +162,7 @@ schema.method("deleteToken", function(token,cb){
     object.id = _id;
     delete object.password;
     delete object.password2;
+    object.role = constant.roles[object.role];
     return object;
   });
 

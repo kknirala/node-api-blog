@@ -46,6 +46,14 @@ module.exports = mongoose => {
       votes: {
         type: Number,
         default: 0
+      },
+      publishedSec: {
+        type: Number,
+        default: 0
+      },
+      unpublishedSec: {
+        type: Number,
+        default: 0
       }
       // ,
       // sections: {
